@@ -21,6 +21,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private double last[] = new double[3];
 	Boolean init = false;
 	double accl[] = new double[3];
+	long fall_duration = 0, end_time = 0;
+	Boolean fall = false;
 
 	// private static final int SHAKE_THRESHOLD = 600;
 
@@ -56,39 +58,59 @@ public class MainActivity extends Activity implements SensorEventListener {
 		accl[1] = (double) (sensorEvent.values[1]);
 		accl[2] = (double) (sensorEvent.values[2]);
 
-		double relative[] = new double[3];
+		// double relative[] = new double[3];
 		// long diffTime;
 		String disp = "";
 
-		// ensure last[] has valid value for calculations
-		if (init == false) {
-			last = accl;
-			init = true;
-			System.out.println("initialized\n");
-			return;
+		long curTime = System.nanoTime();
 
-		}
-
-		long curTime = System.currentTimeMillis();
-
-		if ((curTime - lastUpdate) > 1000) {
-
+		if ((curTime - lastUpdate) > 10) {
 			// diffTime = (curTime - lastUpdate);
 			lastUpdate = curTime;
+
 			for (int i = 0; i < 3; i++) {
 				/*
-				 * double temp = (double)(accl[i]*10 - (last[i])*10);
-				 * NumberFormat nf = NumberFormat.getInstance();
-				 * nf.setMinimumFractionDigits(9); temp /= 10;
-				 * System.out.println(nf.format(temp));
+				 * double temp = (double)(accl[i] - (last[i])); NumberFormat nf
+				 * = NumberFormat.getInstance(); nf.setMinimumFractionDigits(9);
+				 * temp /= 10; System.out.println(nf.format(temp));
 				 */
 				disp += String.valueOf(accl[i]) + " \n";
+			}
+			double accl_vector = (Math.sqrt(Math.pow(accl[0], 2)
+					+ Math.pow(accl[1], 2) + Math.pow(accl[2], 2)));
+
+			if (accl_vector < 1.6) {
+				// phone is in free fall
+				fall = true;
+				System.out.println(accl_vector);
+				end_time = curTime;
+
+				// start of fall
+				if (init == false) {
+					fall_duration = curTime;
+					init = true;
+				}
+			}
+			/*
+			 * sudden bump/stop else if (accl_vector > 12) { fall = false; }
+			 */
+			else
+				fall = false;
+
+			// check for end of fall
+			if (fall == false && init == true) {
+				fall = init = false;
+				fall_duration = (end_time - fall_duration) / 1000000; // convert to ms
+				// filter falls
+				if (fall_duration > 80)
+					System.out.println(fall_duration + "ms");
+				
+				fall_duration = 0;
 			}
 
 			last = accl;
 			show(disp);
-		} else
-			return;
+		}
 	}
 
 	@SuppressLint("NewApi")
@@ -102,7 +124,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 		text.setGravity(Gravity.CENTER);
 		text.setY(100);
 
-		// System.out.println(disp);
 		text.setText(disp);
 
 		// set layout
