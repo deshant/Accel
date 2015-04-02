@@ -23,6 +23,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	double accl[] = new double[3];
 	long fall_duration = 0, end_time = 0;
 	Boolean fall = false;
+	String disp = "SPEED OF IMPACT\n\n";
 
 	// private static final int SHAKE_THRESHOLD = 600;
 
@@ -36,7 +37,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		senM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		senM.registerListener(this, aSensor, SensorManager.SENSOR_DELAY_NORMAL);
 		last = null;
-
+		show(disp);
 	}
 
 	@Override
@@ -58,10 +59,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 		accl[1] = (double) (sensorEvent.values[1]);
 		accl[2] = (double) (sensorEvent.values[2]);
 
-		// double relative[] = new double[3];
 		// long diffTime;
-		String disp = "";
-
+		double hit_speed = 0;
 		long curTime = System.nanoTime();
 
 		if ((curTime - lastUpdate) > 10) {
@@ -74,12 +73,12 @@ public class MainActivity extends Activity implements SensorEventListener {
 				 * = NumberFormat.getInstance(); nf.setMinimumFractionDigits(9);
 				 * temp /= 10; System.out.println(nf.format(temp));
 				 */
-				disp += String.valueOf(accl[i]) + " \n";
+				// disp += String.valueOf(accl[i]) + " \n";
 			}
 			double accl_vector = (Math.sqrt(Math.pow(accl[0], 2)
 					+ Math.pow(accl[1], 2) + Math.pow(accl[2], 2)));
 
-			if (accl_vector < 1.6) {
+			if (accl_vector < 4.5) {
 				// phone is in free fall
 				fall = true;
 				System.out.println(accl_vector);
@@ -100,21 +99,28 @@ public class MainActivity extends Activity implements SensorEventListener {
 			// check for end of fall
 			if (fall == false && init == true) {
 				fall = init = false;
-				fall_duration = (end_time - fall_duration) / 1000000; // convert to ms
+				fall_duration = (end_time - fall_duration) / 1000000; // convert
+																		// to ms
 				// filter falls
-				if (fall_duration > 80)
+				if (fall_duration > 80) {
 					System.out.println(fall_duration + "ms");
-				
-				fall_duration = 0;
+
+					hit_speed = (9.8 * fall_duration) / 1000;
+					System.out.println(hit_speed);
+					disp += String.valueOf(hit_speed + " m/s\n\n");
+					disp += String.valueOf("DURATION OF FREE FALL\n\n"
+							+ fall_duration + "ms\n");
+					fall_duration = 0;
+					show(disp);
+				}
 			}
 
 			last = accl;
-			show(disp);
 		}
 	}
 
 	@SuppressLint("NewApi")
-	void show(String disp) {
+	void show(String value) {
 
 		RelativeLayout layout = new RelativeLayout(this);
 		TextView text = new TextView(this);
@@ -124,7 +130,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 		text.setGravity(Gravity.CENTER);
 		text.setY(100);
 
-		text.setText(disp);
+		text.setText(value);
+		disp = "SPEED OF IMPACT\n\n";
 
 		// set layout
 		for_text = new RelativeLayout.LayoutParams(
