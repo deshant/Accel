@@ -8,22 +8,19 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class MainActivity extends Activity implements SensorEventListener {
 
 	private SensorManager senM;
 	private Sensor aSensor;
-
+	
 	private long lastUpdate = 0;
-	private double last[] = new double[3];
 	Boolean init = false;
 	double accl[] = new double[3];
 	long fall_duration = 0, end_time = 0;
 	Boolean fall = false;
-	String disp = "SPEED OF IMPACT\n\n";
+	String disp = "WELCOME\n\n";
 
 	// private static final int SHAKE_THRESHOLD = 600;
 
@@ -36,7 +33,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 		aSensor = senM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		senM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		senM.registerListener(this, aSensor, SensorManager.SENSOR_DELAY_NORMAL);
-		last = null;
 		show(disp);
 	}
 
@@ -107,40 +103,22 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 					hit_speed = (9.8 * fall_duration) / 1000;
 					System.out.println(hit_speed);
-					disp += String.valueOf(hit_speed + " m/s\n\n");
-					disp += String.valueOf("DURATION OF FREE FALL\n\n"
-							+ fall_duration + "ms\n");
+					disp += String.valueOf("SPEED OF IMPACT\n" + hit_speed + " m/s\n\n");
+					disp += String.valueOf("DURATION OF FREE FALL\n"
+							+ fall_duration + "ms\n\n");
 					fall_duration = 0;
-					show(disp);
 				}
 			}
-
-			last = accl;
+			show(disp);
 		}
 	}
 
 	@SuppressLint("NewApi")
 	void show(String value) {
 
-		RelativeLayout layout = new RelativeLayout(this);
-		TextView text = new TextView(this);
-		RelativeLayout.LayoutParams for_text;
-		text.setId(2);
-		text.setTextSize(15);
-		text.setGravity(Gravity.CENTER);
-		text.setY(100);
-
+		//m_Scroll.removeAllViews();
+		TextView text = (TextView) findViewById(R.id.data);
 		text.setText(value);
-		disp = "SPEED OF IMPACT\n\n";
-
-		// set layout
-		for_text = new RelativeLayout.LayoutParams(
-				RelativeLayout.LayoutParams.WRAP_CONTENT,
-				RelativeLayout.LayoutParams.WRAP_CONTENT);
-		for_text.addRule(RelativeLayout.CENTER_HORIZONTAL, text.getId());
-		for_text.setMargins(0, 20, 0, 20);
-		layout.addView(text, for_text);
-		setContentView(layout);
 	}
 
 	@Override
